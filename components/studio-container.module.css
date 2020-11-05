@@ -1,0 +1,105 @@
+.container {
+  /* max-width: 50%; */
+  padding: 0 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 200px;
+  padding-top: 80px;
+  /* border: 3px solid green; */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidePanel {
+  height: 100%;
+  width: 200px;
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  padding: 8px;
+
+  overflow: hidden;
+  background-color: #fafbfc;
+  /* box-shadow: inset 0 0 0 -1px #eaecef; */
+  box-shadow: 2px 0 1px -1px #eaecef;
+}
+
+.topPanel {
+  /* overflow: hidden; */
+  background-color: #fafbfc;
+  position: fixed; /* Set the navbar to fixed position */
+  top: 0; /* Position the navbar at the top of the page */
+  width: 100%; /* Full width */
+  height: 80px;
+  padding-left: 200px;
+  /* margin-left: 200px; */
+  /* margin-right: auto; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1;
+
+  box-shadow: inset 0 -1px 0 #eaecef;
+}
+
+.topPanelComponents {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
+
+.topPanelComponentsItem {
+  padding: 8px;
+}
+
+.topPanelComponentsTitle {
+  padding: 32px;
+  font-size: 1.5rem;
+}
+
+.selectBox {
+  padding: 8px;
+  width: 50%;
+}
+
+.progressBar {
+  width: 100%;
+  padding-right: 8px;
+}
+
+.itemsContainer {
+  padding-right: 8px;
+}
+
+.itemsComponent {
+  padding-bottom: 8px;
+}
+
+.itemsControlPanel {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.generalControls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  padding-top: 16px;
+}
+
+.generalControlsItem {
+  padding-right: 8px;
+}
+
+.generalMetaInfo {
+  padding-top: 8px;
+  padding-right: 8px;
+}

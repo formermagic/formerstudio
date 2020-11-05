@@ -1,0 +1,11 @@
+.container {
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 0;
+}
