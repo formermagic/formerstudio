@@ -1,4 +1,11 @@
-import { Button, ButtonPrimary, ProgressBar, Text } from "@primer/components";
+import {
+  Button,
+  ButtonDanger,
+  ButtonGroup,
+  ButtonPrimary,
+  ProgressBar,
+  Text,
+} from "@primer/components";
 import { format } from "date-fns";
 import React, { Fragment, useState } from "react";
 import NumberFormat from "react-number-format";
@@ -31,6 +38,7 @@ interface Props {
   onNextClick: () => void;
   onBackClick: () => void;
   onSaveClick: () => void;
+  onIndexDeleted: (index: number | null) => void;
   onIndexSelected: (index: number | null) => void;
   onFileUploaded: (file: InputFile) => void;
   onLabelSelected: (label: string | null) => void;
@@ -97,7 +105,7 @@ const StudioContainer: React.FC<Props> = (props) => {
     }
   }
 
-  // UI Callbacks
+  // Navigation side panel UI callbacks
   const onConfirm = (_event: any) => {
     if (indexPreview != null) {
       props.onIndexSelected(indexPreview);
@@ -105,9 +113,16 @@ const StudioContainer: React.FC<Props> = (props) => {
       setLabelPreview(null);
     }
   };
+  const onDelete = (_event: any) => {
+    const index = indexPreview ? indexPreview : props.index;
+    props.onIndexDeleted(index);
+    setIndexPreview(null);
+  };
   const onCancel = (_event: any) => {
     setIndexPreview(null);
   };
+
+  // Navigation top panel UI callbacks
   const onNext = (_event: any) => {
     props.onNextClick();
     setIndexPreview(null);
@@ -118,6 +133,8 @@ const StudioContainer: React.FC<Props> = (props) => {
     setIndexPreview(null);
     setLabelPreview(null);
   };
+
+  // General controls side panel UI callbacks
   const onSave = (_event: any) => {
     props.onSaveClick();
   };
@@ -201,9 +218,24 @@ const StudioContainer: React.FC<Props> = (props) => {
           </div>
           <div className={styles.itemsComponent}>
             <div className={styles.itemsControlPanel}>
-              <ButtonPrimary onClick={onConfirm}>Confirm</ButtonPrimary>
-              <Button onClick={onCancel}>Cancel</Button>
+              <ButtonGroup width="100%" display="flex">
+                <ButtonDanger width="50%" onClick={onDelete}>
+                  Delete
+                </ButtonDanger>
+                <Button width="50%" onClick={onCancel} disabled={!indexPreview}>
+                  Cancel
+                </Button>
+              </ButtonGroup>
             </div>
+          </div>
+          <div className={styles.itemsComponent}>
+            <ButtonPrimary
+              width="100%"
+              onClick={onConfirm}
+              disabled={!indexPreview}
+            >
+              Confirm
+            </ButtonPrimary>
           </div>
         </div>
       </div>
