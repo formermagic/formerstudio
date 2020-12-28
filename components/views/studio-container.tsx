@@ -1,8 +1,11 @@
 import {
+  Box,
   Button,
   ButtonDanger,
   ButtonGroup,
   ButtonPrimary,
+  ButtonProps,
+  Dialog,
   ProgressBar,
   Text,
 } from "@primer/components";
@@ -49,6 +52,57 @@ interface Props {
   index: number | null;
   setIndex: (value: number | null) => void;
 }
+
+interface DeleteButtonProps extends ButtonProps {
+  handleAccept?: () => void;
+  handleDeny?: () => void;
+}
+
+const DeleteButton = (props: DeleteButtonProps) => {
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  return (
+    <>
+      <ButtonDanger {...props} onClick={handleShow}>
+        Delete
+      </ButtonDanger>
+      <Dialog isOpen={show} onDismiss={handleClose}>
+        <Dialog.Header>Deletion Alert</Dialog.Header>
+        <Box p={3}>
+          <Text fontFamily="sans-serif">
+            Are you sure you want to delete the record? This cannot be undone
+          </Text>
+        </Box>
+        <div>
+          <Button
+            width="100px"
+            marginLeft="16px"
+            marginBottom="16px"
+            onClick={() => {
+              handleClose();
+              if (props.handleDeny) props.handleDeny();
+            }}
+          >
+            No
+          </Button>
+          <ButtonDanger
+            width="100px"
+            marginLeft="8px"
+            marginBottom="16px"
+            onClick={() => {
+              handleClose();
+              if (props.handleAccept) props.handleAccept();
+            }}
+          >
+            Yes
+          </ButtonDanger>
+        </div>
+      </Dialog>
+    </>
+  );
+};
 
 const StudioContainer: React.FC<Props> = (props) => {
   // Navigation items
@@ -113,7 +167,7 @@ const StudioContainer: React.FC<Props> = (props) => {
       setLabelPreview(null);
     }
   };
-  const onDelete = (_event: any) => {
+  const onDelete = () => {
     const index = indexPreview ? indexPreview : props.index;
     props.onIndexDeleted(index);
     setIndexPreview(null);
@@ -219,9 +273,7 @@ const StudioContainer: React.FC<Props> = (props) => {
           <div className={styles.itemsComponent}>
             <div className={styles.itemsControlPanel}>
               <ButtonGroup width="100%" display="flex">
-                <ButtonDanger width="50%" onClick={onDelete}>
-                  Delete
-                </ButtonDanger>
+                <DeleteButton width="50%" handleAccept={onDelete} />
                 <Button width="50%" onClick={onCancel} disabled={!indexPreview}>
                   Cancel
                 </Button>
