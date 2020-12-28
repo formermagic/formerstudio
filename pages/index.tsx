@@ -1,105 +1,140 @@
-import Head from "next/head";
-import React from "react";
-import CommitView from "../components/commit-view";
-import StudioContainer from "../components/studio-container";
+import { saveAs } from "file-saver";
+import { NextPage } from "next";
+import React, { useState } from "react";
+import {
+  Commit,
+  InputData,
+  InputFile,
+  Metadata,
+  Sample,
+} from "../components/types";
+import CommitView from "../components/views/commit-view";
+import StudioContainer from "../components/views/studio-container";
+import camelCaseKeysToUnderscore from "../lib/converters";
+import { DataParser } from "../lib/parsers";
 
-const oldCode = `
-const a = 10
-const b = 10
-const c = () => console.log('foo')
-
-if(a > 10) {
-  console.log('bar')
-}
-
-console.log('done')
-`;
-
-const newCode = `
-const a = 10
-const boo = 10
-
-if(a === 10) {
-  console.log('bar')
-}
-`;
-
-const diffProps = [
+const options = [
   {
-    language: "javascript",
-    oldContent: oldCode,
-    newContent: newCode,
-    leftTitle: "file1.py",
-    rightTitle: "file2.py",
+    value: "feat",
+    label: "[feat]: a new feature (modifies the behavior of a program)",
   },
   {
-    language: "javascript",
-    oldContent: oldCode,
-    newContent: newCode,
-    leftTitle: "file1.py",
-    rightTitle: "file2.py",
+    value: "refactor",
+    label:
+      "[refactor]: a code change that neither fixes a bug nor adds a feature",
+  },
+  { value: "fix", label: "[fix]: a bug fix" },
+  {
+    value: "test",
+    label: "[test]: adding missing tests or correcting existing tests",
   },
   {
-    language: "javascript",
-    oldContent: `export default function DiffView({
-      language,
-      oldContent,
-      newContent,
-      leftTitle,
-      rightTitle,
-    }: DiffViewProps) {
-      return (
-        <div className={styles.container}>
-          <ReactDiffViewer
-            oldValue={oldContent}
-            newValue={newContent}
-            splitView={true}
-            compareMethod={DiffMethod.WORDS}
-            renderContent={highlightSyntax(language)}
-            leftTitle={leftTitle}
-            rightTitle={rightTitle}
-          />
-        </div>
-      );
-    }`,
-    newContent: newCode,
-    leftTitle: "file1.py",
-    rightTitle: "file2.py",
+    value: "chore",
+    label: "[chore]: other changes that don't modify src or test files",
   },
   {
-    language: "python",
-    oldContent: `def dataset_dest_filepath(filepath_prefix: Text, extension: Text) -> Text:
-    filename = os.path.basename(filepath_prefix)
-    filename = filename.split(".")
-    filename, exts = filename[0], filename[1:]
-    dirname = os.path.dirname(filepath_prefix)
-    exts = ".".join(exts)
-    exts = f".{exts}" if exts else ""
-    extension = f".{extension}" if extension else ""
-    return os.path.join(dirname, f"{filename}{exts}{extension}")`,
-    newContent: `def dataset_dest_filepath(filepath_prefix: Text, extension: Text) -> Text:
-    filename = os.path.basename(filepath_prefix)
-    filename = filename.split(".")`,
-    leftTitle: "file1.py",
-    rightTitle: "file2.py",
+    value: "build",
+    label:
+      "[build]: changes that affect the build system or external dependencies",
   },
+  { value: "docs", label: "[docs]: documentation only changes (in code)" },
+  {
+    value: "style",
+    label: "[style]: changes that do not affect the meaning of the code",
+  },
+  { value: "[perf]", label: "[perf]: a code change that improves performance" },
 ];
 
-const options = [{ value: "feat", label: "Feature" }];
+const parser = new DataParser();
 
-export default function Home() {
+const Index: NextPage = () => {
+  const [metadata, setMetadata] = useState<Metadata | undefined>();
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [commits, setCommits] = useState<Commit[]>([]);
+  const [index, setIndex] = useState<number | null>(null);
+
+  const onNextClick = () => {
+    const currentIndex = index ?? 0;
+    setIndex(currentIndex + 1);
+  };
+  const onBackClick = () => {
+    const currentIndex = index ?? 0;
+    setIndex(currentIndex - 1);
+  };
+
+  const onSaveClick = async () => {
+    // Prepare JSON lines for samples
+    const jsonLines = samples.map((sample) => {
+      const copy = JSON.parse(JSON.stringify(sample));
+      return JSON.stringify(camelCaseKeysToUnderscore(copy));
+    });
+
+    // Prepare JSON lines for metadata
+    const newMetadata: Metadata = {
+      type: "metadata",
+      timestamp: Math.floor(Date.now() / 1000),
+      index: index,
+    };
+    const metadataCopy = JSON.parse(JSON.stringify(newMetadata));
+    const metadata = JSON.stringify(camelCaseKeysToUnderscore(metadataCopy));
+    setMetadata(newMetadata);
+
+    // Combine both samples and metadata in bytes blob
+    const blob = new Blob([[metadata, ...jsonLines].join("\n")], {
+      type: "text/plain",
+    });
+
+    // Save blob as file
+    saveAs(blob, "checkpoint.jsonl");
+  };
+
+  const onFileUploaded = async (file: InputFile) => {
+    const inputData = (await parser.parse(file)) as InputData;
+    const samples = inputData.samples;
+    const commits = samples.map((sample) => sample.commit);
+
+    setMetadata(inputData.metadata);
+    setSamples(samples);
+    setCommits(commits);
+
+    if (inputData.metadata) {
+      setIndex(inputData.metadata.index ?? 0);
+    } else {
+      setIndex(0);
+    }
+  };
+
+  const onIndexSelected = (index: number | null) => {
+    setIndex(index);
+  };
+
+  const onLabelSelected = (label: string | null) => {
+    if (index != null) {
+      const sample = samples[index];
+      sample.labels = label ? [label] : [];
+    }
+  };
+
   return (
     <div>
-      <Head>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
-      </Head>
-      <StudioContainer selectOptions={options}>
-        <CommitView
-          commitMessage="Alalala"
-          diffContainerProps={{ diffViewProps: diffProps }}
-        />
+      <StudioContainer
+        labelOptions={options}
+        onNextClick={onNextClick}
+        onBackClick={onBackClick}
+        onSaveClick={onSaveClick}
+        onFileUploaded={onFileUploaded}
+        onIndexSelected={onIndexSelected}
+        onLabelSelected={onLabelSelected}
+        metadata={metadata}
+        samples={samples}
+        commits={commits}
+        index={index}
+        setIndex={setIndex}
+      >
+        <CommitView commits={commits} index={index} />
       </StudioContainer>
     </div>
   );
-}
+};
+
+export default Index;
