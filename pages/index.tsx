@@ -104,6 +104,15 @@ const Index: NextPage = () => {
     }
   };
 
+  const onIndexDeleted = (index: number | null) => {
+    // TODO: show deletion alert
+    const newSamples = samples.filter((_sample, idx) => index !== idx);
+    const newCommits = newSamples.map((sample) => sample.commit);
+    setSamples(newSamples);
+    setCommits(newCommits);
+    setIndex(index);
+  };
+
   const onIndexSelected = (index: number | null) => {
     setIndex(index);
   };
@@ -123,6 +132,7 @@ const Index: NextPage = () => {
         onBackClick={onBackClick}
         onSaveClick={onSaveClick}
         onFileUploaded={onFileUploaded}
+        onIndexDeleted={onIndexDeleted}
         onIndexSelected={onIndexSelected}
         onLabelSelected={onLabelSelected}
         metadata={metadata}
