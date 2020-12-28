@@ -9,14 +9,16 @@
   },
   "dependencies": {
     "@primer/components": "^20.3.0",
+    "@types/camelcase-keys": "^5.1.1",
     "@types/prismjs": "^1.16.2",
     "@types/react-select": "^3.0.23",
+    "camelcase-keys": "^6.2.2",
     "date-fns": "^2.11.1",
     "gray-matter": "^4.0.2",
     "next": "^10.0.0",
     "prismjs": "^1.22.0",
     "react": "^17.0.1",
-    "react-diff-view": "next",
+    "react-diff-view": "^2.4.6",
     "react-diff-viewer": "^3.1.1",
     "react-dom": "^17.0.1",
     "react-number-format": "^4.4.1",
@@ -28,8 +30,10 @@
     "unidiff": "^1.0.2"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.1",
     "@types/node": "^14.14.2",
     "@types/react": "^16.9.53",
+    "file-saver": "^2.0.5",
     "typescript": "^4.0.3"
   }
 }
