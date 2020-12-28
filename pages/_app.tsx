@@ -5,6 +5,8 @@ import "prismjs/components/prism-python";
 import "prismjs/themes/prism.css";
 import "../styles/global.css";
 
-export default function App({ Component, pageProps }: AppProps) {
+const App = ({ Component, pageProps }: AppProps) => {
   return <Component {...pageProps} />;
-}
+};
+
+export default App;
