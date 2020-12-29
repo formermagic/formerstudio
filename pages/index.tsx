@@ -54,12 +54,14 @@ const Index: NextPage = () => {
   const [index, setIndex] = useState<number | null>(null);
 
   const onNextClick = () => {
-    const currentIndex = index ?? 0;
-    setIndex(currentIndex + 1);
+    const maxIndex = samples.length - 1;
+    const currentIndex = (index ?? 0) + 1;
+    setIndex(Math.min(maxIndex, currentIndex));
   };
   const onBackClick = () => {
-    const currentIndex = index ?? 0;
-    setIndex(currentIndex - 1);
+    const minIndex = 0;
+    const currentIndex = (index ?? 0) - 1;
+    setIndex(Math.max(minIndex, currentIndex));
   };
 
   const onSaveClick = async () => {
