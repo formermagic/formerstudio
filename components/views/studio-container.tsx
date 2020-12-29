@@ -67,7 +67,7 @@ const DeleteButton = (props: DeleteButtonProps) => {
   return (
     <>
       <ButtonDanger {...props} onClick={handleShow}>
-        Delete
+        {props.children}
       </ButtonDanger>
       <Dialog isOpen={show} onDismiss={handleClose}>
         <Dialog.Header>Deletion Alert</Dialog.Header>
