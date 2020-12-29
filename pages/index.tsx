@@ -1,6 +1,7 @@
 import { saveAs } from "file-saver";
+import localForage from "localforage";
 import { NextPage } from "next";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Commit,
   InputData,
@@ -13,6 +14,8 @@ import StudioContainer from "../components/views/studio-container";
 import camelCaseKeysToUnderscore from "../lib/converters";
 import { DataParser } from "../lib/parsers";
 
+type MetadataType = Metadata | undefined;
+type IndexType = number | null;
 
 const deepCopy = <T extends unknown>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
@@ -52,11 +55,48 @@ const options = [
 
 const parser = new DataParser();
 
+class StateMemory {
+  metadataKey: string;
+  samplesKey: string;
+  indexKey: string;
+
+  constructor(
+    metadataKey: string = "local-metadata",
+    samplesKey: string = "local-samples",
+    indexKey: string = "local-index"
+  ) {
+    this.metadataKey = metadataKey;
+    this.samplesKey = samplesKey;
+    this.indexKey = indexKey;
+  }
+
+  async restore(): Promise<{
+    metadata: MetadataType;
+    samples: Sample[];
+    commits: Commit[];
+    index: IndexType;
+  }> {
+    const metadata = await localForage.getItem<MetadataType>(this.metadataKey);
+    const samples = await localForage.getItem<Sample[]>(this.samplesKey);
+    const commits = (samples ?? []).map((sample) => sample.commit);
+    const index = await localForage.getItem<IndexType>(this.indexKey);
+
+    const result = {
+      metadata: metadata ?? undefined,
+      samples: samples ?? [],
+      commits: commits,
+      index: index,
+    };
+
+    return Promise.resolve(result);
+  }
+}
+
 const Index: NextPage = () => {
-  const [metadata, setMetadata] = useState<Metadata | undefined>();
+  const [metadata, setMetadata] = useState<MetadataType>();
   const [samples, setSamples] = useState<Sample[]>([]);
   const [commits, setCommits] = useState<Commit[]>([]);
-  const [index, setIndex] = useState<number | null>(null);
+  const [index, setIndex] = useState<IndexType>(null);
 
   const onNextClick = () => {
     const maxIndex = samples.length - 1;
@@ -93,6 +133,16 @@ const Index: NextPage = () => {
 
     // Save blob as file
     saveAs(blob, "checkpoint.jsonl");
+  };
+
+  const onClearClick = () => {
+    setMetadata(undefined);
+    setSamples([]);
+    setCommits([]);
+    setIndex(null);
+
+    // Clear db written data
+    localForage.clear();
   };
 
   const onFileUploaded = async (file: InputFile) => {
@@ -134,6 +184,53 @@ const Index: NextPage = () => {
     }
   };
 
+  // Session state for identifying readiness to update
+  const [sessionInitiated, setSessionInitiated] = useState(false);
+
+  useEffect(() => {
+    // Configure the db
+    localForage.config({
+      driver: localForage.INDEXEDDB,
+      name: "formerstudio-web",
+      version: 1.0,
+      size: 1e8,
+      storeName: "key_value_pairs",
+      description: "some description",
+    });
+
+    // Restore written data if any
+    const memory = new StateMemory();
+    memory.restore().then((result) => {
+      setMetadata(result.metadata);
+      setSamples(result.samples);
+      setCommits(result.commits);
+      setIndex(result.index);
+
+      setSessionInitiated(true);
+    });
+  }, []);
+
+  // Write updated samples to the db
+  useEffect(() => {
+    if (sessionInitiated) {
+      localForage.setItem("local-samples", samples);
+    }
+  }, [samples]);
+
+  // Write updated metadata to the db
+  useEffect(() => {
+    if (sessionInitiated) {
+      localForage.setItem("local-metadata", metadata);
+    }
+  }, [metadata]);
+
+  // Write updated index to the db
+  useEffect(() => {
+    if (sessionInitiated) {
+      localForage.setItem("local-index", index);
+    }
+  }, [index]);
+
   return (
     <div>
       <StudioContainer
@@ -141,6 +238,7 @@ const Index: NextPage = () => {
         onNextClick={onNextClick}
         onBackClick={onBackClick}
         onSaveClick={onSaveClick}
+        onClearClick={onClearClick}
         onFileUploaded={onFileUploaded}
         onIndexDeleted={onIndexDeleted}
         onIndexSelected={onIndexSelected}
