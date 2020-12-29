@@ -150,15 +150,17 @@ const Index: NextPage = () => {
     const samples = inputData.samples;
     const commits = samples.map((sample) => sample.commit);
 
+    let index: IndexType;
+    if (inputData.metadata) {
+      index = inputData.metadata.index ?? 0;
+    } else {
+      index = 0;
+    }
+
     setMetadata(inputData.metadata);
     setSamples(samples);
     setCommits(commits);
-
-    if (inputData.metadata) {
-      setIndex(inputData.metadata.index ?? 0);
-    } else {
-      setIndex(0);
-    }
+    setIndex(index);
   };
 
   const onIndexDeleted = (index: IndexType) => {
