@@ -13,6 +13,11 @@ import StudioContainer from "../components/views/studio-container";
 import camelCaseKeysToUnderscore from "../lib/converters";
 import { DataParser } from "../lib/parsers";
 
+
+const deepCopy = <T extends unknown>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const options = [
   {
     value: "feat",
@@ -123,6 +128,9 @@ const Index: NextPage = () => {
     if (index != null) {
       const sample = samples[index];
       sample.labels = label ? [label] : [];
+
+      // Force samples to be updated
+      setSamples(deepCopy(samples));
     }
   };
 
