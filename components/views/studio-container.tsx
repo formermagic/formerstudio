@@ -119,7 +119,7 @@ const StudioContainer: React.FC<Props> = (props) => {
   // Update selected navigation preview item
   const [indexPreview, setIndexPreview] = useState<number | null>(null);
   const onNavigationChange = (option: OptionsType<Options> | any) => {
-    if (option) {
+    if (option != null) {
       setIndexPreview(parseInt(option.value));
     }
   };
@@ -135,7 +135,7 @@ const StudioContainer: React.FC<Props> = (props) => {
   // Update selected label
   const [labelPreview, setLabelPreview] = useState<Options | null>(null);
   const onLabelChange = (option: OptionsType<Options> | any) => {
-    if (option) {
+    if (option != null) {
       setLabelPreview(option);
       props.onLabelSelected(option.value);
     } else {
@@ -274,7 +274,11 @@ const StudioContainer: React.FC<Props> = (props) => {
             <div className={styles.itemsControlPanel}>
               <ButtonGroup width="100%" display="flex">
                 <DeleteButton width="50%" handleAccept={onDelete} />
-                <Button width="50%" onClick={onCancel} disabled={!indexPreview}>
+                <Button
+                  width="50%"
+                  onClick={onCancel}
+                  disabled={indexPreview == null}
+                >
                   Cancel
                 </Button>
               </ButtonGroup>
@@ -284,7 +288,7 @@ const StudioContainer: React.FC<Props> = (props) => {
             <ButtonPrimary
               width="100%"
               onClick={onConfirm}
-              disabled={!indexPreview}
+              disabled={indexPreview == null}
             >
               Confirm
             </ButtonPrimary>
