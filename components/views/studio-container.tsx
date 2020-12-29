@@ -41,6 +41,7 @@ interface Props {
   onNextClick: () => void;
   onBackClick: () => void;
   onSaveClick: () => void;
+  onClearClick: () => void;
   onIndexDeleted: (index: number | null) => void;
   onIndexSelected: (index: number | null) => void;
   onFileUploaded: (file: InputFile) => void;
@@ -193,6 +194,13 @@ const StudioContainer: React.FC<Props> = (props) => {
     props.onSaveClick();
   };
 
+  // Clear the state
+  const onClearClick = (_event: any) => {
+    props.onClearClick();
+    setIndexPreview(null);
+    setLabelPreview(null);
+  };
+
   // Receive uploaded input file
   const handleFile = (file: InputFile) => {
     props.onFileUploaded(file);
@@ -224,12 +232,17 @@ const StudioContainer: React.FC<Props> = (props) => {
       <div className={styles.sidePanel}>
         <div>
           <div className={styles.generalControls}>
-            <div className={styles.generalControlsItem}>
-              <FileUploader handleFile={handleFile}>New Session</FileUploader>
-            </div>
-            <div className={styles.generalControlsItem}>
-              <Button onClick={onSave}>💾</Button>
-            </div>
+            <ButtonGroup width="100%" display="flex">
+              <FileUploader width="33%" handleFile={handleFile}>
+                <b>New</b>
+              </FileUploader>
+              <Button width="33%" onClick={onSave}>
+                💾
+              </Button>
+              <Button width="33%" onClick={onClearClick}>
+                🗑
+              </Button>
+            </ButtonGroup>
           </div>
           <div className={styles.generalMetaInfo}>
             <Text>Last updated</Text>
