@@ -236,7 +236,11 @@ const StudioContainer: React.FC<Props> = (props) => {
               <FileUploader width="33%" handleFile={handleFile}>
                 <b>New</b>
               </FileUploader>
-              <Button width="33%" onClick={onSave}>
+              <Button
+                width="33%"
+                onClick={onSave}
+                disabled={props.commits.length === 0}
+              >
                 💾
               </Button>
               <DeleteButton
@@ -284,13 +288,20 @@ const StudioContainer: React.FC<Props> = (props) => {
                 value={navigationItem}
                 options={navigationItems}
                 onChange={onNavigationChange}
+                isDisabled={props.commits.length === 0}
               />
             </Fragment>
           </div>
           <div className={styles.itemsComponent}>
             <div className={styles.itemsControlPanel}>
               <ButtonGroup width="100%" display="flex">
-                <DeleteButton width="50%" handleAccept={onDelete} />
+                <DeleteButton
+                  width="50%"
+                  handleAccept={onDelete}
+                  disabled={props.commits.length === 0}
+                >
+                  Delete
+                </DeleteButton>
                 <Button
                   width="50%"
                   onClick={onCancel}
@@ -329,14 +340,22 @@ const StudioContainer: React.FC<Props> = (props) => {
                 value={labelItem}
                 options={props.labelOptions}
                 onChange={onLabelChange}
+                isDisabled={props.commits.length === 0}
               />
             </Fragment>
           </div>
           <div className={styles.topPanelComponentsItem}>
-            <ButtonPrimary onClick={onNext}>Next</ButtonPrimary>
+            <ButtonPrimary
+              onClick={onNext}
+              disabled={props.commits.length === 0}
+            >
+              Next
+            </ButtonPrimary>
           </div>
           <div className={styles.topPanelComponentsItem}>
-            <Button onClick={onBack}>Back</Button>
+            <Button onClick={onBack} disabled={props.commits.length === 0}>
+              Back
+            </Button>
           </div>
         </div>
       </nav>
