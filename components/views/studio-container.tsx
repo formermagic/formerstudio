@@ -239,9 +239,13 @@ const StudioContainer: React.FC<Props> = (props) => {
               <Button width="33%" onClick={onSave}>
                 💾
               </Button>
-              <Button width="33%" onClick={onClearClick}>
+              <DeleteButton
+                width="33%"
+                handleAccept={onClearClick}
+                disabled={props.commits.length === 0}
+              >
                 🗑
-              </Button>
+              </DeleteButton>
             </ButtonGroup>
           </div>
           <div className={styles.generalMetaInfo}>
