@@ -1,5 +1,5 @@
 import { Button, ButtonProps } from "@primer/components";
-import React from "react";
+import React, { BaseSyntheticEvent } from "react";
 import { InputFile } from "../types";
 
 interface Props extends ButtonProps {
@@ -12,9 +12,14 @@ const FileUploader: React.FC<Props> = (props) => {
     hiddenFileInput.current?.click();
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement> | BaseSyntheticEvent
+  ) => {
     const fileUploaded = event.target.files?.item(0);
     props.handleFile(fileUploaded);
+
+    // Reset the file input
+    event.target.value = null;
   };
 
   return (
