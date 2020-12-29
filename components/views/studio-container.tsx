@@ -55,8 +55,8 @@ interface Props {
 }
 
 interface DeleteButtonProps extends ButtonProps {
-  handleAccept?: () => void;
-  handleDeny?: () => void;
+  handleAccept?: (_event?: any) => void;
+  handleDeny?: (_event?: any) => void;
 }
 
 const DeleteButton = (props: DeleteButtonProps) => {
