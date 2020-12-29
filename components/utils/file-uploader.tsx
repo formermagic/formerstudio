@@ -1,9 +1,8 @@
-import { Button } from "@primer/components";
+import { Button, ButtonProps } from "@primer/components";
 import React from "react";
 import { InputFile } from "../types";
 
-interface Props {
-  children?: React.ReactNode;
+interface Props extends ButtonProps {
   handleFile: (file: InputFile) => void;
 }
 
@@ -19,15 +18,17 @@ const FileUploader: React.FC<Props> = (props) => {
   };
 
   return (
-    <div>
-      <Button onClick={handleClick}>{props.children}</Button>
+    <>
+      <Button {...props} onClick={handleClick}>
+        {props.children}
+      </Button>
       <input
         type="file"
         ref={hiddenFileInput}
         onChange={handleChange}
         style={{ display: "none" }}
       />
-    </div>
+    </>
   );
 };
 
