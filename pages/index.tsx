@@ -161,8 +161,7 @@ const Index: NextPage = () => {
     }
   };
 
-  const onIndexDeleted = (index: number | null) => {
-    // TODO: show deletion alert
+  const onIndexDeleted = (index: IndexType) => {
     const newSamples = samples.filter((_sample, idx) => index !== idx);
     const newCommits = newSamples.map((sample) => sample.commit);
     setSamples(newSamples);
@@ -170,7 +169,7 @@ const Index: NextPage = () => {
     setIndex(index);
   };
 
-  const onIndexSelected = (index: number | null) => {
+  const onIndexSelected = (index: IndexType) => {
     setIndex(index);
   };
 
