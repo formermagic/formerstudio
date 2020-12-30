@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import React, { Fragment, useState } from "react";
 import NumberFormat from "react-number-format";
 import Select, { OptionsType } from "react-select";
-import { Commit, InputFile, Metadata, Sample } from "../types";
+import { InputFile, Metadata, Sample } from "../types";
 import FileUploader from "../utils/file-uploader";
 import styles from "./studio-container.module.css";
 
@@ -34,6 +34,12 @@ const Number = ({ value }: { value: number }) => {
   );
 };
 
+export enum FilterState {
+  ALL,
+  ONLY_FINISHED,
+  ONLY_UNFINISHED,
+}
+
 interface Props {
   children?: React.ReactNode;
   labelOptions: OptionsType<Options>;
@@ -46,10 +52,10 @@ interface Props {
   onIndexSelected: (index: number | null) => void;
   onFileUploaded: (file: InputFile) => void;
   onLabelSelected: (label: string | null) => void;
+  onFilterApply: (filter: FilterState) => void;
 
   metadata?: Metadata;
   samples: Sample[];
-  commits: Commit[];
   index: number | null;
   setIndex: (value: number | null) => void;
 }
@@ -107,9 +113,9 @@ const DeleteButton = (props: DeleteButtonProps) => {
 
 const StudioContainer: React.FC<Props> = (props) => {
   // Navigation items
-  const navigationItems = props.commits.map((_commit, index) => {
-    const sample = props.samples[index];
-    const isCompleted = sample.labels.length !== 0;
+  const navigationItems = props.samples.map((sample, index) => {
+    const labels = sample.labels;
+    const isCompleted = labels.length !== 0;
     const prefix = isCompleted ? "✅" : "🚫";
     return {
       value: `${index}`,
@@ -150,7 +156,8 @@ const StudioContainer: React.FC<Props> = (props) => {
   if (labelPreview != null) {
     labelItem = labelPreview;
   } else if (props.index != null) {
-    const labels = props.samples[props.index].labels;
+    const sample = props.samples[props.index];
+    const labels = sample.labels;
     if (labels.length !== 0) {
       const matchingItems = props.labelOptions.filter(
         (option) => option.value === labels[0]
@@ -211,13 +218,13 @@ const StudioContainer: React.FC<Props> = (props) => {
   // Calculate total progress
   let completed: number = 0;
   let progress: number = 0;
-  if (props.commits.length !== 0) {
+  if (props.samples.length !== 0) {
     const filtered = props.samples.filter((sample) => {
       return sample.labels.length !== 0;
     });
 
     completed = filtered.length;
-    progress = (completed + 1) / props.commits.length;
+    progress = (completed + 1) / props.samples.length;
     progress *= 100;
   }
 
@@ -226,6 +233,29 @@ const StudioContainer: React.FC<Props> = (props) => {
   if (props.metadata) {
     timestamp = props.metadata.timestamp;
   }
+
+  // Filter records by completeness state
+  const [onlyUnfinished, setOnlyUnfinished] = useState(false);
+  const [onlyFinished, setOnlyFinished] = useState(false);
+
+  const onUnfinishedFilterApply = (_event: any) => {
+    const isSelected = !onlyUnfinished;
+    const filter = isSelected ? FilterState.ONLY_UNFINISHED : FilterState.ALL;
+    setOnlyUnfinished(isSelected);
+    setOnlyFinished(false);
+    props.onFilterApply(filter);
+  };
+
+  const onFinishedFilterApply = (_event: any) => {
+    const isSelected = !onlyFinished;
+    const filter = isSelected ? FilterState.ONLY_FINISHED : FilterState.ALL;
+    setOnlyFinished(isSelected);
+    setOnlyUnfinished(false);
+    props.onFilterApply(filter);
+  };
+
+  // Disable flag for functional components
+  const isContentEmpty = props.samples.length === 0;
 
   return (
     <div>
@@ -236,17 +266,13 @@ const StudioContainer: React.FC<Props> = (props) => {
               <FileUploader width="33%" handleFile={handleFile}>
                 <b>New</b>
               </FileUploader>
-              <Button
-                width="33%"
-                onClick={onSave}
-                disabled={props.commits.length === 0}
-              >
+              <Button width="33%" onClick={onSave} disabled={isContentEmpty}>
                 💾
               </Button>
               <DeleteButton
                 width="33%"
                 handleAccept={onClearClick}
-                disabled={props.commits.length === 0}
+                disabled={isContentEmpty}
               >
                 🗑
               </DeleteButton>
@@ -265,7 +291,7 @@ const StudioContainer: React.FC<Props> = (props) => {
             <div>
               <Number value={completed} />
               {" of "}
-              <Number value={props.commits.length} />
+              <Number value={props.samples.length} />
             </div>
           </div>
           <div className={styles.progressBar}>
@@ -288,9 +314,31 @@ const StudioContainer: React.FC<Props> = (props) => {
                 value={navigationItem}
                 options={navigationItems}
                 onChange={onNavigationChange}
-                isDisabled={props.commits.length === 0}
+                isDisabled={isContentEmpty}
               />
             </Fragment>
+            <Box my={1}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={onlyUnfinished}
+                  onChange={onUnfinishedFilterApply}
+                  className={styles.checkbox}
+                />
+                <label className={styles.checkboxLabel}>Only unfinished</label>
+              </label>
+            </Box>
+            <Box my={1}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={onlyFinished}
+                  onChange={onFinishedFilterApply}
+                  className={styles.checkbox}
+                />
+                <label className={styles.checkboxLabel}>Only finished</label>
+              </label>
+            </Box>
           </div>
           <div className={styles.itemsComponent}>
             <div className={styles.itemsControlPanel}>
@@ -298,7 +346,7 @@ const StudioContainer: React.FC<Props> = (props) => {
                 <DeleteButton
                   width="50%"
                   handleAccept={onDelete}
-                  disabled={props.commits.length === 0}
+                  disabled={isContentEmpty}
                 >
                   Delete
                 </DeleteButton>
@@ -340,20 +388,17 @@ const StudioContainer: React.FC<Props> = (props) => {
                 value={labelItem}
                 options={props.labelOptions}
                 onChange={onLabelChange}
-                isDisabled={props.commits.length === 0}
+                isDisabled={isContentEmpty}
               />
             </Fragment>
           </div>
           <div className={styles.topPanelComponentsItem}>
-            <ButtonPrimary
-              onClick={onNext}
-              disabled={props.commits.length === 0}
-            >
+            <ButtonPrimary onClick={onNext} disabled={isContentEmpty}>
               Next
             </ButtonPrimary>
           </div>
           <div className={styles.topPanelComponentsItem}>
-            <Button onClick={onBack} disabled={props.commits.length === 0}>
+            <Button onClick={onBack} disabled={isContentEmpty}>
               Back
             </Button>
           </div>
