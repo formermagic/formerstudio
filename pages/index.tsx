@@ -188,6 +188,24 @@ const Index: NextPage = () => {
     }
   };
 
+  const onFilterApply = (filter: FilterState) => {
+    const visibleSamples = samples.filter((sample) => {
+      switch (filter) {
+        case FilterState.ALL:
+          return true;
+        case FilterState.ONLY_FINISHED:
+          return sample.labels.length > 0;
+        case FilterState.ONLY_UNFINISHED:
+          return sample.labels.length === 0;
+      }
+    });
+
+    const maxIndex = visibleSamples.length - 1;
+    const newIndex = Math.min(maxIndex, index ?? 0);
+    setVisibleSamples(visibleSamples);
+    setIndex(newIndex);
+  };
+
   // Session state for identifying readiness to update
   const [sessionInitiated, setSessionInitiated] = useState(false);
 
