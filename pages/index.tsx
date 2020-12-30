@@ -6,11 +6,14 @@ import {
   Commit,
   InputData,
   InputFile,
+  Labels,
   Metadata,
   Sample,
 } from "../components/types";
 import CommitView from "../components/views/commit-view";
-import StudioContainer from "../components/views/studio-container";
+import StudioContainer, {
+  FilterState,
+} from "../components/views/studio-container";
 import camelCaseKeysToUnderscore from "../lib/converters";
 import { DataParser } from "../lib/parsers";
 
@@ -74,17 +77,20 @@ class StateMemory {
     metadata: MetadataType;
     samples: Sample[];
     commits: Commit[];
+    labels: Labels[];
     index: IndexType;
   }> {
     const metadata = await localForage.getItem<MetadataType>(this.metadataKey);
     const samples = await localForage.getItem<Sample[]>(this.samplesKey);
     const commits = (samples ?? []).map((sample) => sample.commit);
+    const labels = (samples ?? []).map((sample) => sample.labels);
     const index = await localForage.getItem<IndexType>(this.indexKey);
 
     const result = {
       metadata: metadata ?? undefined,
       samples: samples ?? [],
       commits: commits,
+      labels: labels,
       index: index,
     };
 
@@ -93,13 +99,13 @@ class StateMemory {
 }
 
 const Index: NextPage = () => {
-  const [metadata, setMetadata] = useState<MetadataType>();
   const [samples, setSamples] = useState<Sample[]>([]);
-  const [commits, setCommits] = useState<Commit[]>([]);
+  const [visibleSamples, setVisibleSamples] = useState<Sample[]>([]);
+  const [metadata, setMetadata] = useState<MetadataType>();
   const [index, setIndex] = useState<IndexType>(null);
 
   const onNextClick = () => {
-    const maxIndex = samples.length - 1;
+    const maxIndex = visibleSamples.length - 1;
     const currentIndex = (index ?? 0) + 1;
     setIndex(Math.min(maxIndex, currentIndex));
   };
@@ -138,7 +144,7 @@ const Index: NextPage = () => {
   const onClearClick = () => {
     setMetadata(undefined);
     setSamples([]);
-    setCommits([]);
+    setVisibleSamples([]);
     setIndex(null);
 
     // Clear db written data
@@ -148,7 +154,6 @@ const Index: NextPage = () => {
   const onFileUploaded = async (file: InputFile) => {
     const inputData = (await parser.parse(file)) as InputData;
     const samples = inputData.samples;
-    const commits = samples.map((sample) => sample.commit);
 
     let index: IndexType;
     if (inputData.metadata) {
@@ -159,15 +164,13 @@ const Index: NextPage = () => {
 
     setMetadata(inputData.metadata);
     setSamples(samples);
-    setCommits(commits);
+    setVisibleSamples(samples);
     setIndex(index);
   };
 
   const onIndexDeleted = (index: IndexType) => {
-    const newSamples = samples.filter((_sample, idx) => index !== idx);
-    const newCommits = newSamples.map((sample) => sample.commit);
-    setSamples(newSamples);
-    setCommits(newCommits);
+    const visibleSamples = samples.filter((_sample, idx) => index !== idx);
+    setVisibleSamples(visibleSamples);
     setIndex(index);
   };
 
@@ -204,7 +207,7 @@ const Index: NextPage = () => {
     memory.restore().then((result) => {
       setMetadata(result.metadata);
       setSamples(result.samples);
-      setCommits(result.commits);
+      setVisibleSamples(result.samples);
       setIndex(result.index);
 
       setSessionInitiated(true);
@@ -244,13 +247,13 @@ const Index: NextPage = () => {
         onIndexDeleted={onIndexDeleted}
         onIndexSelected={onIndexSelected}
         onLabelSelected={onLabelSelected}
+        onFilterApply={onFilterApply}
         metadata={metadata}
-        samples={samples}
-        commits={commits}
+        samples={visibleSamples}
         index={index}
         setIndex={setIndex}
       >
-        <CommitView commits={commits} index={index} />
+        <CommitView samples={visibleSamples} index={index} />
       </StudioContainer>
     </div>
   );
