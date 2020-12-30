@@ -11,10 +11,12 @@ export interface Commit {
   modifications: Modification[];
 }
 
+export type Labels = string[];
+
 export interface Sample {
   commit: Commit;
   repository: string;
-  labels: string[];
+  labels: Labels;
 }
 
 export interface Metadata {
