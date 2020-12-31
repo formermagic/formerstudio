@@ -136,7 +136,8 @@ const StudioContainer: React.FC<Props> = (props) => {
   if (indexPreview != null) {
     navigationItem = navigationItems[indexPreview];
   } else if (props.index != null) {
-    navigationItem = navigationItems[props.index];
+    if (props.samples.length !== 0)
+      navigationItem = navigationItems[props.index];
   }
 
   // Update selected label
@@ -157,16 +158,16 @@ const StudioContainer: React.FC<Props> = (props) => {
     labelItem = labelPreview;
   } else if (props.index != null) {
     if (props.samples.length !== 0) {
-    const sample = props.samples[props.index];
-    const labels = sample.labels;
-    if (labels.length !== 0) {
-      const matchingItems = props.labelOptions.filter(
-        (option) => option.value === labels[0]
-      );
+      const sample = props.samples[props.index];
+      const labels = sample.labels;
+      if (labels.length !== 0) {
+        const matchingItems = props.labelOptions.filter(
+          (option) => option.value === labels[0]
+        );
 
-      labelItem = matchingItems[0];
+        labelItem = matchingItems[0];
+      }
     }
-  }
   }
 
   // Navigation side panel UI callbacks
