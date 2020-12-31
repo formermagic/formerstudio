@@ -213,9 +213,21 @@ const Index: NextPage = () => {
   };
 
   const onIndexDeleted = (index: IndexType) => {
-    const visibleSamples = samples.filter((_sample, idx) => index !== idx);
-    setVisibleSamples(visibleSamples);
-    setIndex(index);
+    if (index == null) return;
+
+    // Prepare new samples without deleted sample
+    const sample = visibleSamples[index];
+    const newSamples = samples.filter((_, idx) => idx !== sample.index);
+    // Prepare new visible samples from samples and current filter
+    const newVisibleSamples = samplesWithFilter(newSamples, filter);
+    // Prepare new index within the updated bounds
+    const maxIndex = Math.max(newVisibleSamples.length - 1, 0);
+    const newIndex = Math.min(maxIndex, index ?? 0);
+
+    // Force data to be updated
+    setSamples(deepCopy(newSamples));
+    setVisibleSamples(deepCopy(newVisibleSamples));
+    setIndex(newIndex);
   };
 
   const onIndexSelected = (index: IndexType) => {
