@@ -14,7 +14,8 @@ const CommitView: React.FC<Props> = (props) => {
   }
 
   const index = props.index ?? 0;
-  const commit = props.samples[index].commit;
+  const sample = props.samples[index];
+  const commit = sample.commit;
 
   return (
     <div className={styles.container}>
