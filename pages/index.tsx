@@ -19,9 +19,47 @@ import { DataParser } from "../lib/parsers";
 
 type MetadataType = Metadata | undefined;
 type IndexType = number | null;
+interface VisibleSample {
+  sample: Sample;
+  index: IndexType;
+}
 
 const deepCopy = <T extends unknown>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
+};
+
+const notEmpty = <TValue extends unknown>(
+  value: TValue | null | undefined
+): value is TValue => {
+  return value !== null && value !== undefined;
+};
+
+const samplesWithFilter = (
+  samples: Sample[],
+  filter: FilterState
+): VisibleSample[] => {
+  return samples
+    .flatMap((sample, index) => {
+      switch (filter) {
+        case FilterState.ALL:
+          return { sample: sample, index: index };
+        case FilterState.ONLY_FINISHED:
+          if (sample.labels.length !== 0) {
+            return { sample: sample, index: index };
+          }
+
+          break;
+        case FilterState.ONLY_UNFINISHED:
+          if (sample.labels.length === 0) {
+            return { sample: sample, index: index };
+          }
+
+          break;
+      }
+
+      return null;
+    })
+    .filter(notEmpty);
 };
 
 const options = [
@@ -76,21 +114,21 @@ class StateMemory {
   async restore(): Promise<{
     metadata: MetadataType;
     samples: Sample[];
-    commits: Commit[];
-    labels: Labels[];
+    visibleSamples: VisibleSample[];
     index: IndexType;
   }> {
     const metadata = await localForage.getItem<MetadataType>(this.metadataKey);
     const samples = await localForage.getItem<Sample[]>(this.samplesKey);
-    const commits = (samples ?? []).map((sample) => sample.commit);
-    const labels = (samples ?? []).map((sample) => sample.labels);
     const index = await localForage.getItem<IndexType>(this.indexKey);
+
+    const visibleSamples = (samples ?? []).map((sample, index) => {
+      return { sample: sample, index: index };
+    });
 
     const result = {
       metadata: metadata ?? undefined,
       samples: samples ?? [],
-      commits: commits,
-      labels: labels,
+      visibleSamples: visibleSamples,
       index: index,
     };
 
@@ -100,7 +138,7 @@ class StateMemory {
 
 const Index: NextPage = () => {
   const [samples, setSamples] = useState<Sample[]>([]);
-  const [visibleSamples, setVisibleSamples] = useState<Sample[]>([]);
+  const [visibleSamples, setVisibleSamples] = useState<VisibleSample[]>([]);
   const [metadata, setMetadata] = useState<MetadataType>();
   const [index, setIndex] = useState<IndexType>(null);
 
@@ -154,6 +192,12 @@ const Index: NextPage = () => {
   const onFileUploaded = async (file: InputFile) => {
     const inputData = (await parser.parse(file)) as InputData;
     const samples = inputData.samples;
+    const visibleSamples = samples.map((sample, index) => {
+      return {
+        sample,
+        index,
+      };
+    });
 
     let index: IndexType;
     if (inputData.metadata) {
@@ -164,7 +208,7 @@ const Index: NextPage = () => {
 
     setMetadata(inputData.metadata);
     setSamples(samples);
-    setVisibleSamples(samples);
+    setVisibleSamples(visibleSamples);
     setIndex(index);
   };
 
@@ -189,18 +233,8 @@ const Index: NextPage = () => {
   };
 
   const onFilterApply = (filter: FilterState) => {
-    const visibleSamples = samples.filter((sample) => {
-      switch (filter) {
-        case FilterState.ALL:
-          return true;
-        case FilterState.ONLY_FINISHED:
-          return sample.labels.length > 0;
-        case FilterState.ONLY_UNFINISHED:
-          return sample.labels.length === 0;
-      }
-    });
-
-    const maxIndex = visibleSamples.length - 1;
+    const visibleSamples = samplesWithFilter(samples, filter);
+    const maxIndex = Math.max(visibleSamples.length - 1, 0);
     const newIndex = Math.min(maxIndex, index ?? 0);
     setVisibleSamples(visibleSamples);
     setIndex(newIndex);
@@ -225,7 +259,7 @@ const Index: NextPage = () => {
     memory.restore().then((result) => {
       setMetadata(result.metadata);
       setSamples(result.samples);
-      setVisibleSamples(result.samples);
+      setVisibleSamples(result.visibleSamples);
       setIndex(result.index);
 
       setSessionInitiated(true);
@@ -267,11 +301,14 @@ const Index: NextPage = () => {
         onLabelSelected={onLabelSelected}
         onFilterApply={onFilterApply}
         metadata={metadata}
-        samples={visibleSamples}
+        samples={visibleSamples.map((sample) => sample.sample)}
         index={index}
         setIndex={setIndex}
       >
-        <CommitView samples={visibleSamples} index={index} />
+        <CommitView
+          samples={visibleSamples.map((sample) => sample.sample)}
+          index={index}
+        />
       </StudioContainer>
     </div>
   );
