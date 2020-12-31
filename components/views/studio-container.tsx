@@ -243,6 +243,7 @@ const StudioContainer: React.FC<Props> = (props) => {
     const filter = isSelected ? FilterState.ONLY_UNFINISHED : FilterState.ALL;
     setOnlyUnfinished(isSelected);
     setOnlyFinished(false);
+    setIndexPreview(null);
     props.onFilterApply(filter);
   };
 
@@ -251,6 +252,7 @@ const StudioContainer: React.FC<Props> = (props) => {
     const filter = isSelected ? FilterState.ONLY_FINISHED : FilterState.ALL;
     setOnlyFinished(isSelected);
     setOnlyUnfinished(false);
+    setIndexPreview(null);
     props.onFilterApply(filter);
   };
 
