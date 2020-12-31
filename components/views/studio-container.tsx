@@ -156,6 +156,7 @@ const StudioContainer: React.FC<Props> = (props) => {
   if (labelPreview != null) {
     labelItem = labelPreview;
   } else if (props.index != null) {
+    if (props.samples.length !== 0) {
     const sample = props.samples[props.index];
     const labels = sample.labels;
     if (labels.length !== 0) {
@@ -165,6 +166,7 @@ const StudioContainer: React.FC<Props> = (props) => {
 
       labelItem = matchingItems[0];
     }
+  }
   }
 
   // Navigation side panel UI callbacks
