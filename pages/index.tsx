@@ -236,8 +236,12 @@ const Index: NextPage = () => {
 
   const onLabelSelected = (label: string | null) => {
     if (index != null) {
-      const sample = samples[index];
-      sample.labels = label ? [label] : [];
+      const labels = label ? [label] : [];
+      const visibleSample = visibleSamples[index];
+      if (visibleSample.index != null) {
+        visibleSample.sample.labels = labels;
+        samples[visibleSample.index].labels = labels;
+      }
 
       // Force samples to be updated
       setSamples(deepCopy(samples));
