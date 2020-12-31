@@ -142,6 +142,8 @@ const Index: NextPage = () => {
   const [metadata, setMetadata] = useState<MetadataType>();
   const [index, setIndex] = useState<IndexType>(null);
 
+  const [filter, setFilter] = useState<FilterState>(FilterState.ALL);
+
   const onNextClick = () => {
     const maxIndex = visibleSamples.length - 1;
     const currentIndex = (index ?? 0) + 1;
@@ -254,6 +256,7 @@ const Index: NextPage = () => {
     const newIndex = Math.min(maxIndex, index ?? 0);
     setVisibleSamples(visibleSamples);
     setIndex(newIndex);
+    setFilter(filter);
   };
 
   // Session state for identifying readiness to update
