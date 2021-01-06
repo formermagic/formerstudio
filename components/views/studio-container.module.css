@@ -61,7 +61,8 @@
 
 .topPanelComponentsTitle {
   padding: 32px;
-  font-size: 1.5rem;
+  font: sans-serif;
+  font-size: 20px;
   min-width: 200px;
   display: inline-block;
 }
