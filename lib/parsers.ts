@@ -10,7 +10,7 @@ const isMetadata = (obj: any) => {
 };
 
 export class DataParser implements IDataParser {
-  parse = (inputFile: InputFile) => {
+  parse = async (inputFile: InputFile) => {
     let samples: Promise<InputData>;
     if (inputFile) {
       samples = inputFile.text().then((text) => {
