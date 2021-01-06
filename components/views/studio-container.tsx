@@ -12,7 +12,7 @@ import {
 import { format } from "date-fns";
 import React, { Fragment, useState } from "react";
 import NumberFormat from "react-number-format";
-import Select, { OptionsType } from "react-select";
+import Select, { createFilter, OptionsType } from "react-select";
 import { InputFile, Metadata, Sample } from "../types";
 import FileUploader from "../utils/file-uploader";
 import styles from "./studio-container.module.css";
@@ -320,6 +320,7 @@ const StudioContainer: React.FC<Props> = (props) => {
                 options={navigationItems}
                 onChange={onNavigationChange}
                 isDisabled={isContentEmpty}
+                filterOption={createFilter({ ignoreAccents: false })}
               />
             </Fragment>
             <Box my={1}>
@@ -394,6 +395,7 @@ const StudioContainer: React.FC<Props> = (props) => {
                 options={props.labelOptions}
                 onChange={onLabelChange}
                 isDisabled={isContentEmpty}
+                filterOption={createFilter({ ignoreAccents: false })}
               />
             </Fragment>
           </div>
