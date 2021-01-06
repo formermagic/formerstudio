@@ -2,37 +2,22 @@ import { saveAs } from "file-saver";
 import localForage from "localforage";
 import { NextPage } from "next";
 import React, { useEffect, useState } from "react";
-import {
-  Commit,
-  InputData,
-  InputFile,
-  Labels,
-  Metadata,
-  Sample,
-} from "../components/types";
+import { InputData, InputFile, Metadata, Sample } from "../components/types";
 import CommitView from "../components/views/commit-view";
 import StudioContainer, {
   FilterState,
 } from "../components/views/studio-container";
 import camelCaseKeysToUnderscore from "../lib/converters";
 import { DataParser } from "../lib/parsers";
+import { deepCopy, notEmpty } from "../lib/utils";
 
 type MetadataType = Metadata | undefined;
 type IndexType = number | null;
+
 interface VisibleSample {
   sample: Sample;
   index: IndexType;
 }
-
-const deepCopy = <T extends unknown>(obj: T): T => {
-  return JSON.parse(JSON.stringify(obj));
-};
-
-const notEmpty = <TValue extends unknown>(
-  value: TValue | null | undefined
-): value is TValue => {
-  return value !== null && value !== undefined;
-};
 
 const samplesWithFilter = (
   samples: Sample[],
@@ -168,7 +153,8 @@ const Index: NextPage = () => {
       timestamp: Math.floor(Date.now() / 1000),
       index: index,
     };
-    const metadataCopy = JSON.parse(JSON.stringify(newMetadata));
+
+    const metadataCopy = deepCopy(newMetadata);
     const metadata = JSON.stringify(camelCaseKeysToUnderscore(metadataCopy));
     setMetadata(newMetadata);
 
@@ -245,7 +231,7 @@ const Index: NextPage = () => {
         samples[visibleSample.index].labels = labels;
       }
 
-      // Force samples to be updated
+      // Force data to be updated
       setSamples(deepCopy(samples));
     }
   };
