@@ -1,6 +1,7 @@
 import { saveAs } from "file-saver";
 import localForage from "localforage";
 import { NextPage } from "next";
+import pathParse from "path-parse";
 import React, { useEffect, useState } from "react";
 import { InputData, InputFile, Metadata, Sample } from "../components/types";
 import CommitView from "../components/views/commit-view";
@@ -128,6 +129,7 @@ const Index: NextPage = () => {
   const [index, setIndex] = useState<IndexType>(null);
 
   const [filter, setFilter] = useState<FilterState>(FilterState.ALL);
+  const [filename, setFilename] = useState("");
 
   const onNextClick = () => {
     const maxIndex = visibleSamples.length - 1;
@@ -164,7 +166,9 @@ const Index: NextPage = () => {
     });
 
     // Save blob as file
-    saveAs(blob, "checkpoint.jsonl");
+    const filepath = pathParse(filename);
+    const outputPath = filepath.name + "_result" + filepath.ext;
+    saveAs(blob, outputPath);
   };
 
   const onClearClick = () => {
@@ -193,6 +197,8 @@ const Index: NextPage = () => {
     } else {
       index = 0;
     }
+
+    if (file) setFilename(file.name);
 
     setMetadata(inputData.metadata);
     setSamples(samples);
