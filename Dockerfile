@@ -17,6 +17,10 @@ RUN npm install
 # Install sharp for building nextjs app
 RUN npm install sharp
 
+# Remove unnecessary deps to minimize image size
+RUN apk del gcc g++ make fftw-dev && \
+    rm -rf /var/cache/apk/*
+
 # Build nextjs app
 RUN npm run build
 # Expose port for running the app
