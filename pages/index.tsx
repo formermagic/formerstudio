@@ -12,7 +12,6 @@ import camelCaseKeysToUnderscore from "../lib/converters";
 import { DataParser } from "../lib/parsers";
 import { deepCopy, notEmpty } from "../lib/utils";
 
-type MetadataType = Metadata | undefined;
 type IndexType = number | null;
 
 interface VisibleSample {
@@ -98,12 +97,12 @@ class StateMemory {
   }
 
   async restore(): Promise<{
-    metadata: MetadataType;
+    metadata: Metadata;
     samples: Sample[];
     visibleSamples: VisibleSample[];
     index: IndexType;
   }> {
-    const metadata = await localForage.getItem<MetadataType>(this.metadataKey);
+    const metadata = await localForage.getItem<Metadata>(this.metadataKey);
     const samples = await localForage.getItem<Sample[]>(this.samplesKey);
     const index = await localForage.getItem<IndexType>(this.indexKey);
 
@@ -112,7 +111,7 @@ class StateMemory {
     });
 
     const result = {
-      metadata: metadata ?? undefined,
+      metadata: metadata ?? defaultMetadata,
       samples: samples ?? [],
       visibleSamples: visibleSamples,
       index: index,
@@ -122,14 +121,20 @@ class StateMemory {
   }
 }
 
+const defaultMetadata: Metadata = {
+  type: "metadata",
+  timestamp: null,
+  index: null,
+  filename: null,
+};
+
 const Index: NextPage = () => {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [visibleSamples, setVisibleSamples] = useState<VisibleSample[]>([]);
-  const [metadata, setMetadata] = useState<MetadataType>();
+  const [metadata, setMetadata] = useState<Metadata>(defaultMetadata);
   const [index, setIndex] = useState<IndexType>(null);
 
   const [filter, setFilter] = useState<FilterState>(FilterState.ALL);
-  const [filename, setFilename] = useState("");
 
   const onNextClick = () => {
     const maxIndex = visibleSamples.length - 1;
@@ -154,25 +159,29 @@ const Index: NextPage = () => {
       type: "metadata",
       timestamp: Math.floor(Date.now() / 1000),
       index: index,
+      filename: metadata.filename,
     };
 
     const metadataCopy = deepCopy(newMetadata);
-    const metadata = JSON.stringify(camelCaseKeysToUnderscore(metadataCopy));
+    const metadataJson = JSON.stringify(
+      camelCaseKeysToUnderscore(metadataCopy)
+    );
     setMetadata(newMetadata);
 
     // Combine both samples and metadata in bytes blob
-    const blob = new Blob([[metadata, ...jsonLines].join("\n")], {
+    const blob = new Blob([[metadataJson, ...jsonLines].join("\n")], {
       type: "text/plain",
     });
 
     // Save blob as file
+    const filename = metadata.filename ?? "";
     const filepath = pathParse(filename);
     const outputPath = filepath.name + "_result" + filepath.ext;
     saveAs(blob, outputPath);
   };
 
   const onClearClick = () => {
-    setMetadata(undefined);
+    setMetadata(defaultMetadata);
     setSamples([]);
     setVisibleSamples([]);
     setIndex(null);
@@ -198,9 +207,20 @@ const Index: NextPage = () => {
       index = 0;
     }
 
-    if (file) setFilename(file.name);
+    // Prepare read or default metadata
+    let metadata: Metadata;
+    if (inputData.metadata) {
+      metadata = inputData.metadata;
+    } else {
+      metadata = {
+        type: "metadata",
+        timestamp: Math.floor(Date.now() / 1000),
+        index: index,
+        filename: file?.name ?? null,
+      };
+    }
 
-    setMetadata(inputData.metadata);
+    setMetadata(metadata);
     setSamples(samples);
     setVisibleSamples(visibleSamples);
     setIndex(index);
