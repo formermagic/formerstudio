@@ -23,6 +23,7 @@ export interface Metadata {
   type: "metadata";
   timestamp: number | null;
   index: number | null;
+  filename: string | null;
 }
 
 export interface InputData {
